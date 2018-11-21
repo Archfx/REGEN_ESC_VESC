@@ -98,8 +98,10 @@ void app_set_configuration(app_configuration *conf) {
 	case APP_CUSTOM:
 #ifdef APP_CUSTOM_TO_USE
 		hw_stop_i2c();
-		app_custom_start();
+		//app_custom_start();
 #endif
+		app_custom_start();
+		//app_example_init(); // Your example application	
 		break;
 
 	default:
