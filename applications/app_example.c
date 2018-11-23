@@ -1,23 +1,18 @@
-//#include "ch.h" // ChibiOS
-//#include "hal.h" // ChibiOS HAL
-//#include "mc_interface.h" // Motor control functions
-//#include "hw.h" // Pin mapping on this hardware
-//#include "timeout.h" // To reset the timeout
-
-
-//Gen code
-
+//Generator code
+#include "ch.h" // ChibiOS
+#include "hal.h" // ChibiOS HAL
+#include "hw.h" // Pin mapping on this hardware
 #include <math.h>
 #include "mc_interface.h"
 #include "timeout.h"
 #include "commands.h" // Terminal print
-
+#include "mcpwm.h"
 
 // Target generator rpm (applies in both directions, always positive)
 #define GEN_ERPM		38000.0
 
 // Generator current (amperes) at target rpm (always positive)
-#define GEN_CURRENT		  3.0
+#define GEN_CURRENT		  1
 
 // At what ratio of GEN_RPM to start generation.
 // GEN_RPM = 2000 and GEN_START = 0.90 would start regenerative braking at
@@ -25,7 +20,7 @@
 // GEN_CURRENT is reached at GEN_RPM.
 // (VESC_Tool limits, i.e. max motor currents & max battery current, will be
 // respected.)
-#define GEN_START		   0.90
+#define GEN_START		   0.85
 
 #define GEN_UPDATE_RATE_HZ	1000
 
@@ -46,7 +41,7 @@ void app_custom_start(void) {
 //void app_example_init(void) {
 	// Set the UART TX pin as an input with pulldown
 	
-	//palSetPadMode(HW_UART_TX_PORT, HW_UART_TX_PIN, PAL_MODE_INPUT_PULLDOWN);
+	palSetPadMode(HW_UART_TX_PORT, HW_UART_TX_PIN, PAL_MODE_INPUT_PULLDOWN);
  
 	// Start the example thread
 	//chThdCreateStatic(example_thread_wa, sizeof(example_thread_wa),
@@ -82,75 +77,70 @@ static THD_FUNCTION(gen_thread, arg) {
 	chRegSetThreadName("APP_GEN");
  
 	for(;;) {
-		// Read the pot value and scale it to a number between 0 and 1 (see hw_46.h)
-		float pot = (float)ADC_Value[ADC_IND_EXT];
-		float pot2 = (float)ADC_Value[ADC_IND_EXT2];
-		pot /= 800.0;
-		pot2/= 4095;
 
-		//commands_printf("%.2f", pot);
-		//commands_printf("%.2f", pot2);
-		//pot /= 4095.0;
- 		//mc_interface_set_pid_speed(pot * 10000.0);
-		//if (palReadPad(HW_UART_TX_PORT, HW_UART_TX_PIN)) {
-			// If the button is pressed, run the motor with speed control
-			// proportional to the POT position with a speed between 0 ERPM
-			// and 10000 ERPM
-		//	mc_interface_set_pid_speed(pot * 10000.0);
-		//} else {
-			// If the button is not pressed, release the motor
-		//	mc_interface_release_motor();
-		//}
- 
-		// Run this loop at 500Hz
-		//chThdSleepMilliseconds(2);
- 
-		// Reset the timeout
-		//timeout_reset();
 
-		const float rpm_now = mc_interface_get_rpm();
-		const float rpm_rel = fabsf(rpm_now)/GEN_ERPM;
-		// Get speed normalized to set rpm
-		if (fabsf(rpm_now)>10000)
+		if (palReadPad(HW_UART_TX_PORT, HW_UART_TX_PIN)) 
 		{
-			const float rpm_rel = 1;
-		}
 			
-		// Start generation at GEN_START * set rpm
-		float current = rpm_rel - pot2;   //GEN_START;
+			//mc_interface_set_pid_speed(.9 * 10000.0);
+			mcpwm_set_pid_speed(10000);
 
-		//float current = 1 - GEN_START;
-		if (current < 0.0)
-			current = 0.0;
-
-		// Reach 100 % of set current at set rpm
-		current /= 1.00 - pot2;   //GEN_START;
-
-		current *= pot;//GEN_CURRENT;
-
-		if (rpm_now < 0.0) {
-			mc_interface_set_current(current);
-		} else {
-			mc_interface_set_current(-current);
 		}
 
+		else
+		{
+			//float pot = (float)ADC_Value[ADC_IND_EXT];
+			//float pot2 = (float)ADC_Value[ADC_IND_EXT2];
+			//pot /= 800.0;
+			//pot2/= 4095;
 
-		// Sleep for a time according to the specified rate
-		systime_t sleep_time = CH_CFG_ST_FREQUENCY / GEN_UPDATE_RATE_HZ;
 
-		// At least one tick should be slept to not block the other threads
-		if (sleep_time == 0) {
-			sleep_time = 1;
+			const float rpm_now = mc_interface_get_rpm();
+			const float rpm_rel = fabsf(rpm_now)/GEN_ERPM;
+			// Get speed normalized to set rpm
+			if (fabsf(rpm_now)>10000)
+			{
+				const float rpm_rel = 1;
+			}
+				
+			// Start generation at GEN_START * set rpm
+			float current = rpm_rel - GEN_START;
+
+			//float current = 1 - GEN_START;
+			if (current < 0.0)
+				current = 0.0;
+
+			// Reach 100 % of set current at set rpm
+			current /= 1.00 - GEN_START;
+
+			current *= GEN_CURRENT;
+
+			if (rpm_now < 0.0) {
+				mc_interface_set_current(current);
+			} else {
+				mc_interface_set_current(-current);
+			}
+
+
+			// Sleep for a time according to the specified rate
+			systime_t sleep_time = CH_CFG_ST_FREQUENCY / GEN_UPDATE_RATE_HZ;
+
+			// At least one tick should be slept to not block the other threads
+			if (sleep_time == 0) {
+				sleep_time = 1;
+			}
+			chThdSleep(sleep_time);
+
+			if (stop_now) {
+				is_running = false;
+				return;
+			}
+
+			// Reset timeout
+			timeout_reset();
+
 		}
-		chThdSleep(sleep_time);
-
-		if (stop_now) {
-			is_running = false;
-			return;
-		}
-
-		// Reset timeout
-		timeout_reset();
+		
 
 
 	}
