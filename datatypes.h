@@ -265,6 +265,7 @@ typedef enum {
 	APP_ADC_UART,
 	APP_NUNCHUK,
 	APP_NRF,
+	APP_GENERATOR,
 	APP_CUSTOM
 } app_use;
 

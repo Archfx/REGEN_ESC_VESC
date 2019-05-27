@@ -50,11 +50,15 @@ void app_nunchuk_configure(chuk_config *conf);
 float app_nunchuk_get_decoded_chuk(void);
 void app_nunchuk_update_output(chuck_data *data);
 
+void app_generator_start(void);
+void app_generator_stop(void);
+void app_generator_configure(app_configuration *conf);
+
 // Custom apps
 void app_custom_start(void);
 void app_custom_stop(void);
 void app_custom_configure(app_configuration *conf);
-
+//void app_example_init(void); // Your application
 
 
 #endif /* APP_H_ */

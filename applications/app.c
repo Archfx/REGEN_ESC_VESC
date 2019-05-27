@@ -95,12 +95,17 @@ void app_set_configuration(app_configuration *conf) {
 		}
 		break;
 
+	case APP_GENERATOR:
+		app_generator_start();
+		break;
+
 	case APP_CUSTOM:
 #ifdef APP_CUSTOM_TO_USE
 		hw_stop_i2c();
-		app_custom_start();
+		//app_custom_start();
 #endif
-		
+		app_custom_start();
+		//app_example_init(); // Your example application	
 		break;
 
 	default:
@@ -113,7 +118,7 @@ void app_set_configuration(app_configuration *conf) {
 	app_nunchuk_configure(&appconf.app_chuk_conf);
 
 #ifdef APP_CUSTOM_TO_USE
-	app_custom_configure(&appconf);
+	app_generator_configure(&appconf);
 #endif
 
 	rfhelp_update_conf(&appconf.app_nrf_conf);
