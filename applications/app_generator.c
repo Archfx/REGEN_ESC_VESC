@@ -8,6 +8,8 @@
 #include "commands.h" // Terminal print
 #include "mcpwm.h"
 
+// Inspired by https://vesc-project.com/node/618
+
 // Target generator rpm (applies in both directions, always positive)
 #define GEN_ERPM		38000.0
 
@@ -27,11 +29,9 @@
 static volatile bool stop_now = true;
 static volatile bool is_running = false;
 
-
 // Example thread
 //static THD_FUNCTION(example_thread, arg);
 //static THD_WORKING_AREA(example_thread_wa, 2048); // 2kb stack for this thread
-
 
 //Generator thread
 static THD_FUNCTION(gen_thread, arg);
@@ -93,7 +93,6 @@ static THD_FUNCTION(gen_thread, arg) {
 			//float pot2 = (float)ADC_Value[ADC_IND_EXT2];
 			//pot /= 800.0;
 			//pot2/= 4095;
-
 
 			const float rpm_now = mc_interface_get_rpm();
 			const float rpm_rel = fabsf(rpm_now)/GEN_ERPM;
