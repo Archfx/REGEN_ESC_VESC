@@ -17,7 +17,6 @@ void app_custom_start(void) {
 
 
 void app_custom_stop(void) {
-
 }
 
 
