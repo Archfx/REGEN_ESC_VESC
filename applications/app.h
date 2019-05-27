@@ -58,7 +58,5 @@ void app_generator_configure(app_configuration *conf);
 void app_custom_start(void);
 void app_custom_stop(void);
 void app_custom_configure(app_configuration *conf);
-//void app_example_init(void); // Your application
-
 
 #endif /* APP_H_ */

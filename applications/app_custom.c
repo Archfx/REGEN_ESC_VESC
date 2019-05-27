@@ -22,5 +22,3 @@
 #ifdef APP_CUSTOM_TO_USE
 #include APP_CUSTOM_TO_USE
 #endif
-
-

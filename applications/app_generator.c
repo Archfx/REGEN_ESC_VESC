@@ -8,6 +8,7 @@
 #include "commands.h" // Terminal print
 #include "mcpwm.h"
 
+// Creadit to https://vesc-project.com/node/618
 // Target generator rpm (applies in both directions, always positive)
 #define GEN_ERPM		38000.0
 
@@ -27,11 +28,9 @@
 static volatile bool stop_now = true;
 static volatile bool is_running = false;
 
-
 // Example thread
 //static THD_FUNCTION(example_thread, arg);
 //static THD_WORKING_AREA(example_thread_wa, 2048); // 2kb stack for this thread
-
 
 //Generator thread
 static THD_FUNCTION(gen_thread, arg);
@@ -52,8 +51,6 @@ void app_generator_start(void) {
 	chThdCreateStatic(gen_thread_wa, sizeof(gen_thread_wa), NORMALPRIO, gen_thread, NULL);
 }
 
-
-
 void app_generator_stop(void) {
 	stop_now = true;
 	while (is_running) {
@@ -61,16 +58,10 @@ void app_generator_stop(void) {
 	}
 }
 
-
-
 void app_generator_configure(app_configuration *conf) {
 	(void) conf;
 }
 
-
-
-
- 
 static THD_FUNCTION(gen_thread, arg) {
 	(void)arg;
 	commands_printf("Generator app initiated");
@@ -93,7 +84,6 @@ static THD_FUNCTION(gen_thread, arg) {
 			//float pot2 = (float)ADC_Value[ADC_IND_EXT2];
 			//pot /= 800.0;
 			//pot2/= 4095;
-
 
 			const float rpm_now = mc_interface_get_rpm();
 			const float rpm_rel = fabsf(rpm_now)/GEN_ERPM;
@@ -121,7 +111,6 @@ static THD_FUNCTION(gen_thread, arg) {
 				mc_interface_set_current(-current);
 			}
 
-
 			// Sleep for a time according to the specified rate
 			systime_t sleep_time = CH_CFG_ST_FREQUENCY / GEN_UPDATE_RATE_HZ;
 
@@ -139,9 +128,7 @@ static THD_FUNCTION(gen_thread, arg) {
 			// Reset timeout
 			timeout_reset();
 
-		}
-		
-
+		}		
 
 	}
 }
